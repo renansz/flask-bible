@@ -4,7 +4,6 @@
 <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
 <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
 
-
 <title>Bible</title>
 
 {%- block extrahead %}
@@ -23,8 +22,10 @@
     <div class=flash>{{ message }}</div>
   {% endfor %}
   {% block body %}
-    <script src="http://code.jquery.com/jquery.js"></script>
   {% endblock %}
+    <script src="http://code.jquery.com/jquery.js"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='hilight.js') }}"></script>
+
 </div>
 {%- endblock %}
 

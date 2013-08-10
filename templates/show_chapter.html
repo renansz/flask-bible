@@ -18,21 +18,17 @@
     </div>
     <div class="span11">
       <blockquote>
-	<ul class="unstyled">
-	  {% for verse in verses %}
-	  <li>
-	    <div class="{{chapter|safe}}:{{verse['verse_num']|safe}}">
-	      <small><strong>{{chapter|safe}}:{{verse['verse_num']|safe}}</strong> </small>
-	      <p>{{ verse['verse'].decode('latin-1')|safe }}</p>
-	    </div>
-	    {% else %}
-	  <li>
-	    <em>Chapter not found!</em>
-	    {% endfor %}
-	  </div>
-	</ul>
+	{% for verse in verses %}
+	<div id="{{chapter|safe}}:{{verse['verse_num']|safe}}" class="verse">
+	  <small><strong>{{chapter|safe}}:{{verse['verse_num']|safe}}</strong> </small>
+	  <p>{{ verse['verse'].decode('latin-1')|safe }}</p>
+	</div>
+	{% else %}
+	<em>Chapter not found!</em>
+	{% endfor %}
       </blockquote>
     </div>
   </div>
 </div>
+
 {% endblock %}
