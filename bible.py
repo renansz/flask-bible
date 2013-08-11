@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-\
 import sqlite3
 from contextlib import closing
-from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash
+from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash, jsonify
+from flaskext.mongoalchemy import MongoAlchemy
+
 
 #app configuration
 DATABASE = 'db/bible-br.db'
@@ -13,8 +15,18 @@ PASSWORD = 'admin'
 
 app = Flask(__name__)
 #app.config.from_envvar('BIBLE_SETTINGS',silent=True)
+#mongoDB config
+app.config['MONGOALCHEMY_DATABASE'] = 'hilights'
+db_mongo = MongoAlchemy(app)
+
 app.config.from_object(__name__)
 
+#mongoDB classes
+class Hilight(db_mongo.Document):
+    book_api_name = db_mongo.StringField()
+    refs = db_mongo.SetField(db_mongo.StringField())
+
+   
 #db functions
 def connect_db():
     return sqlite3.connect(app.config['DATABASE'])
@@ -49,6 +61,8 @@ def query_db(query, args=(), one=False):
     cur.close()
     return (rv[0] if rv else None) if one else rv
         
+
+
 #app
 @app.route('/show_chapter/<book>/<int:chapter>')
 def show_chapter(book,chapter):
@@ -57,21 +71,47 @@ def show_chapter(book,chapter):
     verses = [dict(verse_num=row[0],verse=row[1],id=row[2]) for row in result]
 
     #get the next chapter - it needs to verify wether it belongs to another book or not
-    #it verifies to which book the next verse below getting the next verse id of our database
+    #it verifies to which book the next verse belongs getting the next verse id of the verses table
     next_chapter = get_next_prev_chapter(verses[-1]['id'],1)
     url_next= url_for('show_chapter',book=next_chapter['book'],chapter=next_chapter['chapter'])
+
     #the same for the previous chapter
     prev_chapter = get_next_prev_chapter(verses[0]['id'],-1)
     url_prev= url_for('show_chapter',book=prev_chapter['book'],chapter=prev_chapter['chapter'])
-    
-    return render_template('show_chapter.html',verses=verses,chapter=chapter,book_name=book_name,url_next=url_next,url_prev=url_prev)
 
-def get_next_prev_chapter(last_verse_id,next_prev):
-    last_verse_id += next_prev
-    book_id,chapter = query_db('select id_book,chapter_num from texts where id=?',[last_verse_id],one=True)
+    #query for the user's hilights
+    hilights = get_hilights(book)
+    #if there's any hilighted text, mark it, filtering the correct chapter
+    #-------------TODO------------------
+        
+
+    return render_template('show_chapter.html',verses=verses,chapter=chapter,book_name=book_name,url_next=url_next,url_prev=url_prev,hilights=hilights)
+
+@app.route('/hilight')
+def save_hilight():
+    ref = request.args.get('ref')
+    book = request.args.get('book')
+    print ref, book
+    hilight = get_hilights(book)
+    if not hilight:
+        hilight = Hilight(book_api_name=book,refs=set([ref]))
+        hilight.save()
+        return jsonify(result=True)
+    else:
+        hilight.refs.add(ref)
+        hilight.save()
+        return jsonify(result=True)
+    return jsonify(result=False)
+
+
+def get_next_prev_chapter(verse_id,next_prev):
+    verse_id += next_prev
+    book_id,chapter = query_db('select id_book,chapter_num from texts where id=?',[verse_id],one=True)
     book, = query_db('select book_api_name from books where id=?',[book_id],one=True)
     return dict(book=book,chapter=chapter)
 
+def get_hilights(book):
+    return Hilight.query.filter(Hilight.book_api_name == book).first()    
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0')

@@ -5,8 +5,8 @@
   <div class="span8">
     <div class="span12">
       <div class="span6">
-	<h1>{{book_name.decode('latin-1')|safe}} </h1>
-	<p class="lead"> Capítulo {{chapter|safe}}</p>
+	<h1>{{book_name.decode('latin-1')}} </h1>
+	<p class="lead"> Capítulo {{chapter}}</p>
       </div>
       <div class="span2 offset4">
 	<h1>&nbsp </h1>
@@ -19,9 +19,9 @@
     <div class="span11">
       <blockquote>
 	{% for verse in verses %}
-	<div id="{{chapter|safe}}:{{verse['verse_num']|safe}}" class="verse">
-	  <small><strong>{{chapter|safe}}:{{verse['verse_num']|safe}}</strong> </small>
-	  <p>{{ verse['verse'].decode('latin-1')|safe }}</p>
+	<div id="{{chapter}}:{{verse['verse_num']}}" class="verse">
+	  <small><strong>{{chapter}}:{{verse['verse_num']}}</strong> </small>
+	  <p>{{ verse['verse'].decode('latin-1') }}</p>
 	</div>
 	{% else %}
 	<em>Chapter not found!</em>
@@ -29,6 +29,7 @@
       </blockquote>
     </div>
   </div>
+  <div class="span12" id="result">Teste</div>
 </div>
 
 {% endblock %}
