@@ -17,19 +17,21 @@
       </div>
     </div>
     <div class="span11">
-      <blockquote>
+      <!--<blockquote>-->
 	{% for verse in verses %}
-	<div id="{{chapter}}:{{verse['verse_num']}}" class="verse">
+	<div id="{{chapter}}:{{verse['verse_num']}}" class="verse {%if chapter ~ ':' ~ verse['verse_num'] in hilights %} alert {% endif %}">
+	  <p>
 	  <small><strong>{{chapter}}:{{verse['verse_num']}}</strong> </small>
-	  <p>{{ verse['verse'].decode('latin-1') }}</p>
+	  {{ verse['verse'].decode('latin-1') }}</p>
 	</div>
 	{% else %}
 	<em>Chapter not found!</em>
 	{% endfor %}
-      </blockquote>
+      <!--</blockquote>-->
+      <p>chapter: {{ chapter ~ ':' ~ 3}}</p>
+      <p>h_verses: {{hilights}}</p>
     </div>
   </div>
-  <div class="span12" id="result">Teste</div>
 </div>
 
 {% endblock %}

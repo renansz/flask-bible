@@ -26,7 +26,6 @@ class Hilight(db_mongo.Document):
     book_api_name = db_mongo.StringField()
     refs = db_mongo.SetField(db_mongo.StringField())
 
-   
 #db functions
 def connect_db():
     return sqlite3.connect(app.config['DATABASE'])
@@ -82,10 +81,14 @@ def show_chapter(book,chapter):
     #query for the user's hilights
     hilights = get_hilights(book)
     #if there's any hilighted text, mark it, filtering the correct chapter
-    #-------------TODO------------------
+    if hilights:
+        h_verses = get_hilighted_verses(hilights,chapter)
+        print 'h_verses: '
+        print  h_verses
+    else:
+        h_verses = set([])
         
-
-    return render_template('show_chapter.html',verses=verses,chapter=chapter,book_name=book_name,url_next=url_next,url_prev=url_prev,hilights=hilights)
+    return render_template('show_chapter.html',verses=verses,chapter=chapter,book_name=book_name,url_next=url_next,url_prev=url_prev,hilights=h_verses)
 
 @app.route('/hilight')
 def save_hilight():
@@ -103,15 +106,20 @@ def save_hilight():
         return jsonify(result=True)
     return jsonify(result=False)
 
-
 def get_next_prev_chapter(verse_id,next_prev):
     verse_id += next_prev
     book_id,chapter = query_db('select id_book,chapter_num from texts where id=?',[verse_id],one=True)
     book, = query_db('select book_api_name from books where id=?',[book_id],one=True)
     return dict(book=book,chapter=chapter)
 
+#get all the hilights for that specific book
 def get_hilights(book):
     return Hilight.query.filter(Hilight.book_api_name == book).first()    
+
+#filter the hilights for the chapter in the current view
+# TODO -- cache functions
+def get_hilighted_verses(hilights,chapter):
+    return  hilights.refs
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0')
