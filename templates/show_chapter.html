@@ -13,23 +13,25 @@
 	<div class="btn-group pull-right">
 	  <a class="btn" href="{{url_prev}}"><i class="icon-chevron-left"></i></a>
   	  <a class="btn" href="{{url_next}}"><i class="icon-chevron-right"></i></a>
+	  <a class="btn" href="#"><i class="icon-align-justify"></i></a>
 	</div>
       </div>
     </div>
-    <div class="span11">
-      <!--<blockquote>-->
+    <div class="span12">
+      <dl class="verses dl-horizontal">
 	{% for verse in verses %}
-	<div id="{{chapter}}:{{verse['verse_num']}}" class="verse {%if chapter ~ ':' ~ verse['verse_num'] in hilights %} alert {% endif %}">
-	  <p>
-	  <small><strong>{{chapter}}:{{verse['verse_num']}}</strong> </small>
-	  {{ verse['verse'].decode('latin-1') }}</p>
-	</div>
+	<dt class="span1">{{chapter}}:{{verse['verse_num']}}</dt>
+	<dd class="span10">
+	  <div id="verse {{chapter}}:{{verse['verse_num']}}" class="verse {%if chapter ~ ':' ~ verse['verse_num'] in hilights %} alert {% endif %}" rel="popover {{chapter}}:{{verse['verse_num']}}" >
+	    {{ verse['verse'].decode('latin-1') }}
+	  </div>
+	</dd>
 	{% else %}
-	<em>Chapter not found!</em>
+	<dd>
+	  <em>Chapter not found!</em>
+	</dd>
 	{% endfor %}
-      <!--</blockquote>-->
-      <p>chapter: {{ chapter ~ ':' ~ 3}}</p>
-      <p>h_verses: {{hilights}}</p>
+      </dl>
     </div>
   </div>
 </div>
