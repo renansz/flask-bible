@@ -18,7 +18,6 @@ app = Flask(__name__)
 #mongoDB config
 app.config['MONGOALCHEMY_DATABASE'] = 'hilights'
 db_mongo = MongoAlchemy(app)
-
 app.config.from_object(__name__)
 
 #mongoDB classes
@@ -26,6 +25,11 @@ class Hilight(db_mongo.Document):
     book_api_name = db_mongo.StringField()
     refs = db_mongo.SetField(db_mongo.StringField())
 
+class Comment(db_mongo.Document):
+    book_api_name = db_mongo.StringField()
+    chapter = db_mongo.IntField()
+    verses = db_mongo.KVField(db_mongo.IntField(),db_mongo.StringField(), default_empty = True)
+    
 #db functions
 def connect_db():
     return sqlite3.connect(app.config['DATABASE'])
@@ -83,18 +87,48 @@ def show_chapter(book,chapter):
     #if there's any hilighted text, mark it, filtering the correct chapter
     if hilights:
         h_verses = get_hilighted_verses(hilights,chapter)
-        print 'h_verses: '
-        print  h_verses
+        if DEBUG:
+            print 'h_verses: '
+            print  h_verses
     else:
         h_verses = set([])
         
     return render_template('show_chapter.html',verses=verses,chapter=chapter,book_name=book_name,url_next=url_next,url_prev=url_prev,hilights=h_verses)
 
+def get_next_prev_chapter(verse_id,next_prev):
+    verse_id += next_prev
+    book_id,chapter = query_db('select id_book,chapter_num from texts where id=?',[verse_id],one=True)
+    book, = query_db('select book_api_name from books where id=?',[book_id],one=True)
+    return dict(book=book,chapter=chapter)
+
+#needs review and model creation, before tests
+@app.route('/comment')
+def save_comment():
+    chapter = request.args.get('chapter')
+    verse = request.args.get('verse')
+    book = request.args.get('book')
+    comment = request.args.get('comment')
+    if DEBUG:
+        print ref, book, comment
+    comments = get_comments(book,chapter)
+    if not comments:
+        _verse = mongo_db.KVField(mongo_db.IntField(),mongo_db.StringField())
+        _verse.wrap({verse : comment})
+        comments = Comment(book_api_name=book,chapter=chapter,verses = _verse)
+        comments.save()
+        return jsonify(result=True)
+    else:
+        comments.verses[verse] = comment
+        comment.save()
+        return jsonify(result=True)
+    return jsonify(result=False)
+
 @app.route('/hilight')
 def save_hilight():
     ref = request.args.get('ref')
     book = request.args.get('book')
-    print ref, book
+    if DEBUG:
+        print ref, book
     hilight = get_hilights(book)
     if not hilight:
         hilight = Hilight(book_api_name=book,refs=set([ref]))
@@ -106,15 +140,14 @@ def save_hilight():
         return jsonify(result=True)
     return jsonify(result=False)
 
-def get_next_prev_chapter(verse_id,next_prev):
-    verse_id += next_prev
-    book_id,chapter = query_db('select id_book,chapter_num from texts where id=?',[verse_id],one=True)
-    book, = query_db('select book_api_name from books where id=?',[book_id],one=True)
-    return dict(book=book,chapter=chapter)
 
 #get all the hilights for that specific book
 def get_hilights(book):
     return Hilight.query.filter(Hilight.book_api_name == book).first()    
+
+#get all the hilights for that specific book
+def get_comments(book,chapter):
+    return Comment.query.filter(Comment.book_api_name == book,Comment.chapter == chapter).first()    
 
 #filter the hilights for the chapter in the current view
 # TODO -- cache functions

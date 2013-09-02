@@ -18,13 +18,14 @@
       </div>
     </div>
     <div class="span12">
-      <dl class="verses dl-horizontal">
+      <dl class="verses dl-horizontal clearfix">
 	{% for verse in verses %}
 	<dt class="span1">{{chapter}}:{{verse['verse_num']}}</dt>
 	<dd class="span10">
-	  <div id="verse {{chapter}}:{{verse['verse_num']}}" class="verse {%if chapter ~ ':' ~ verse['verse_num'] in hilights %} alert {% endif %}" rel="popover {{chapter}}:{{verse['verse_num']}}" >
-	    {{ verse['verse'].decode('latin-1') }}
+	  <div id="verse {{chapter}}:{{verse['verse_num']}}" class="verse {%if chapter ~ ':' ~ verse['verse_num'] in hilights %} alert {% endif %} span11">
+	    {{verse['verse'].decode('latin-1')}}
 	  </div>
+	  <div id="{{chapter}}:{{verse['verse_num']}}" class="comment-icon inactive span1"><i class="icon-comment"></i></div>
 	</dd>
 	{% else %}
 	<dd>
